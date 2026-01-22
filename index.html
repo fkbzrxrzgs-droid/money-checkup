@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的財富人格測驗</title>
+    
+    <!-- 引入 html2canvas (用於截圖功能) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- 引入字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #006e7f;
+            --secondary: #f59e0b;
+            --bg: #f4f7f6;
+            --text: #2c3e50;
+            --card-bg: #ffffff;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: var(--bg); 
+            font-family: 'Noto Sans TC', sans-serif; 
+            color: var(--text); 
+            padding-bottom: 60px; 
+            overflow-x: hidden;
+        }
+        
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        
+        /* Header (心理測驗風) */
+        header { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            padding: 30px 20px; 
+            background: linear-gradient(135deg, #006e7f 0%, #004d59 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,110,127,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 裝飾背景圓 */
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+            animation: rotate 20s linear infinite;
+        }
+        
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .header-icon { font-size: 40px; display: block; margin-bottom: 10px; position: relative; z-index: 1; }
+        
+        h1 { 
+            color: white; 
+            font-size: 26px; 
+            font-weight: 900; 
+            margin-bottom: 8px; 
+            letter-spacing: 1px; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+            position: relative; z-index: 1;
+        }
+        
+        p.subtitle { 
+            color: rgba(255,255,255,0.9); 
+            font-size: 14px; 
+            line-height: 1.5; 
+            font-weight: 400; 
+            position: relative; z-index: 1;
+        }
+
+        /* Form */
+        .form-section { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        
+        .input-group { flex: 1 1 100%; }
+        
+        @media (min-width: 600px) {
+             .input-group { flex: 1 1 30%; }
+        }
+
+        label { 
+            display: block; 
+            font-size: 13px; 
+            color: var(--primary); 
+            font-weight: 700; 
+            margin-bottom: 5px; 
+        }
+        
+        input[type="text"], input[type="tel"] { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            background: #fcfcfc; 
+            outline: none; 
+            transition: border 0.3s;
+        }
+        
+        input:focus { border-color: var(--primary); background: #fff; }
+        
+        /* 錯誤狀態樣式 */
+        .input-error { border-color: #e11d48 !important; background-color: #fff5f5 !important; }
+        .card-error { border-color: #e11d48 !important; box-shadow: 0 0 10px rgba(225, 29, 72, 0.2) !important; }
+
+
+        /* Quiz Grid */
+        .quiz-grid { 
+            display: grid; 
+            gap: 15px; 
+            grid-template-columns: 1fr; /* 手機單欄 */
+        }
+        
+        @media (min-width: 600px) {
+            .quiz-grid { grid-template-columns: repeat(2, 1fr); } /* 平板雙欄 */
+            .full-width { grid-column: span 2; }
+        }
+        
+        /* Card */
+        .question-card { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            padding: 15px 20px; 
+            border: 1px solid #e2e8f0; 
+            border-left-width: 5px;
+            border-left-style: solid;
+            transition: transform 0.2s; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        
+        .mod-1 { border-left-color: #334155; } .mod-1 .q-num { color: #334155; }
+        .mod-2 { border-left-color: #f59e0b; } .mod-2 .q-num { color: #f59e0b; }
+        .mod-3 { border-left-color: #059669; } .mod-3 .q-num { color: #059669; }
+        .mod-4 { border-left-color: #be123c; } .mod-4 .q-num { color: #be123c; }
+        .mod-pain { border-left-color: #ef4444; background-color: #fffbfb; } .mod-pain .q-num { color: #ef4444; }
+
+        .q-header { display: flex; align-items: flex-start; margin-bottom: 10px; }
+        .q-num { 
+            font-family: 'Roboto', sans-serif; 
+            font-size: 22px; 
+            font-weight: 900; 
+            margin-right: 10px; 
+            opacity: 0.9;
+            min-width: 30px;
+        }
+        
+        .q-title { font-size: 16px; font-weight: 700; line-height: 1.3; }
+        
+        /* 複選提示樣式 */
+        .q-multi-hint { 
+            font-size: 12px; 
+            color: #64748b; 
+            background: #f1f5f9; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            margin-left: 6px; 
+            white-space: nowrap;
+            font-weight: 400;
+            vertical-align: middle;
+            display: inline-block;
+        }
+        
+        .options { display: flex; flex-direction: column; gap: 8px; }
+        
+        .option-label { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            background: white; 
+            transition: 0.2s; 
+            min-height: 48px; /* 加大觸控區 */
+            cursor: pointer; 
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .option-label:active { transform: scale(0.98); background-color: #f8fafc; }
+        
+        .option-label.selected { 
+            background-color: #f0f9fa; 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 1px var(--primary) inset;
+        }
+        
+        .option-label.selected .option-text { color: var(--primary); font-weight: 700; }
+        
+        .box { 
+            width: 20px; height: 20px; 
+            border: 2px solid #cbd5e1; 
+            border-radius: 5px; 
+            margin-right: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0;
+            background: #fff;
+        }
+        
+        .option-label.selected .box { background: var(--primary); border-color: var(--primary); }
+        
+        .box::after { 
+            content: '✓'; 
+            color: white; 
+            font-size: 14px; 
+            display: none; 
+            font-weight: 900;
+        }
+        
+        .option-label.selected .box::after { display: block; }
+        
+        .option-text { font-size: 15px; color: #475569; flex: 1; }
+        
+        input[type="checkbox"] { display: none; }
+
+        /* Q5 輸入框 */
+        .inline-input { 
+            border: none; 
+            border-bottom: 1px dashed #94a3b8; 
+            background: transparent; 
+            font-size: 15px; 
+            color: #333; 
+            width: 100px; 
+            margin-left: 8px; 
+            padding: 2px; 
+            outline: none; 
+        }
+        .inline-input:focus { border-bottom: 2px solid var(--primary); }
+
+        /* Button */
+        .actions { margin-top: 40px; text-align: center; padding: 0 20px; }
+        .btn { 
+            background: linear-gradient(to right, #006e7f, #004d59); 
+            color: white; 
+            border: none; 
+            padding: 16px 30px; 
+            font-size: 18px; 
+            font-weight: 700; 
+            border-radius: 50px; 
+            width: 100%; 
+            max-width: 350px; 
+            box-shadow: 0 6px 15px rgba(0,110,127,0.3); 
+            cursor: pointer; 
+            transition: transform 0.2s; 
+        }
+        .btn:active { transform: scale(0.95); }
+
+        /* --- Analysis Overlay (分析結果頁) --- */
+        #analysis-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            z-index: 9999; 
+            overflow-y: auto; 
+            padding: 10px; 
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .analysis-card { 
+            background: white; 
+            width: 100%;
+            max-width: 500px; 
+            margin: 20px auto; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            position: relative; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .persona-header { 
+            background: var(--primary); 
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+            position: relative;
+            transition: background 0.5s ease;
+        }
+        
+        .persona-img-container { 
+            width: 100px; height: 100px; 
+            margin: 0 auto 15px auto; 
+            border-radius: 50%; 
+            border: 4px solid white; 
+            background: #fff;
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .persona-img { width: 100%; height: 100%; object-fit: cover; }
+        .persona-emoji { font-size: 50px; line-height: 100px; }
+
+        .persona-title { font-size: 24px; font-weight: 900; margin-bottom: 5px; letter-spacing: 1px; }
+        
+        .persona-code { 
+            display: inline-block; 
+            background: rgba(255,255,255,0.2); 
+            padding: 4px 15px; 
+            border-radius: 20px; 
+            font-family: 'Roboto', sans-serif; 
+            letter-spacing: 2px; 
+            font-size: 16px; 
+            font-weight: 700;
+            margin-top: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+        }
+        
+        .persona-body { padding: 25px 20px; }
+        
+        /* Progress Bars */
+        .trait-row { display: flex; align-items: center; margin-bottom: 12px; font-size: 13px; color: #555; }
+        .trait-label { width: 40px; text-align: center; font-weight: 700; color: #333; }
+        .trait-bar-bg { flex: 1; height: 8px; background: #eee; border-radius: 4px; margin: 0 10px; position: relative; overflow: hidden;}
+        .trait-bar-fill { height: 100%; border-radius: 4px; position: absolute; top: 0; transition: width 1s ease; }
+        
+        .bar-left { left: 0; background: #94a3b8; }
+        .bar-right { right: 0; background: var(--secondary); }
+        .color-growth { background: var(--secondary); }
+        .color-safe { background: #006e7f; }
+
+        .analysis-text { 
+            background: #f8fafc; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            line-height: 1.6; 
+            color: #333; 
+            margin-top: 20px; 
+            border-left: 4px solid var(--secondary);
+            text-align: left;
+        }
+
+        .cta-box { margin-top: 25px; text-align: center; border-top: 1px dashed #ddd; padding-top: 20px; }
+        .cta-text { font-size: 15px; color: #333; margin-bottom: 12px; line-height: 1.5; font-weight: 700;}
+        .cta-sub { font-size: 12px; color: #666; font-weight: 400; display: block; margin-top: 2px;}
+        .cta-highlight { color: #e11d48; font-weight: 700; background: #fff1f2; padding: 2px 5px; border-radius: 4px;}
+
+        .next-step-btn { 
+            background: #e11d48; 
+            color: white; 
+            padding: 14px 25px; 
+            border-radius: 50px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            display: inline-block; 
+            box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3); 
+            animation: pulse 2s infinite; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 16px; 
+            width: 100%; 
+        }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* Hidden Capture Area (截圖專用區，不會顯示在網頁上) */
+        #capture-area { 
+            position: fixed; left: -9999px; top: 0; 
+            width: 600px; /* 固定寬度確保手機截圖清晰 */
+            background: white; 
+            padding: 40px; 
+            font-family: 'Noto Sans TC', sans-serif; 
+            box-sizing: border-box;
+        }
+
+        .cap-header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .cap-info {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cap-item {
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 5px;
+        }
+        .cap-q { color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+        .cap-a { color: #333; font-size: 15px; font-weight: 500; }
+        
+        /* 截圖區的代碼顯示 */
+        .cap-code-box {
+            text-align: right; border-left: 2px solid #ccc; padding-left: 15px; min-width: 150px;
+        }
+
+        /* Result Image Overlay */
+        #result-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; overflow-y: auto; padding: 20px; text-align: center; }
+        #final-image-container { max-width: 500px; margin: 20px auto; }
+        #generated-image { width: 100%; height: auto; border-radius: 10px; display: block; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .close-btn { margin-top: 20px; padding: 10px 30px; border-radius: 20px; border: 1px solid white; background: transparent; color: white; cursor: pointer; font-size: 14px; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="header-icon">🔮</span>
+        <h1>我的財富人格測驗</h1>
+        <p class="subtitle">30秒測出您的隱藏理財基因，解鎖專屬致富密碼。</p>
+    </header>
+
+    <!-- 填寫個資區 -->
+    <div class="form-section">
+        <div class="input-group">
+            <label>您的姓名 / 稱呼 <span style="color:#e11d48">*</span></label>
+            <input type="text" id="name" placeholder="請輸入姓名">
+        </div>
+        <div class="input-group">
+            <label>聯絡電話</label>
+            <input type="tel" id="phone" placeholder="09xx-xxx-xxx">
+        </div>
+        <div class="input-group">
+            <label>LINE ID (方便傳送報告)</label>
+            <input type="text" id="lineId" placeholder="請輸入 ID">
+        </div>
+    </div>
+
+    <form id="quizForm">
+        <div class="quiz-grid">
+            <!-- Q1 (可複選) -->
+            <div class="question-card mod-1" id="card-Q1">
+                <div class="q-header"><span class="q-num">01</span><div class="q-title">投資主要動機<span class="q-multi-hint">(可複選)</span></div></div>
+                <div class="options" data-id="Q1">
+                    <label class="option-label"><input type="checkbox" value="成長" data-score="growth:2;driver:O"><div class="box"></div><span class="option-text">資產長期成長</span></label>
+                    <label class="option-label"><input type="checkbox" value="現金流" data-score="defend:2;driver:F"><div class="box"></div><span class="option-text">創造穩定現金流</span></label>
+                    <label class="option-label"><input type="checkbox" value="抗通膨" data-score="growth:1"><div class="box"></div><span class="option-text">抗通膨</span></label>
+                    <label class="option-label"><input type="checkbox" value="特定目標" data-score="defend:1;driver:G"><div class="box"></div><span class="option-text">特定目標 (買房/退休)</span></label>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="question-card mod-1" id="card-Q2">
+                <div class="q-header"><span class="q-num">02</span><div><div class="q-title">資金閉鎖期</div><span class="q-desc">多久內不需動用？</span></div></div>
+                <div class="options" data-id="Q2">
+                    <label class="option-label"><input type="checkbox" value="1年內" data-score="short:2"><div class="box"></div><span class="option-text">1 年內 (需隨時動用)</span></label>
+                    <label class="option-label"><input type="checkbox" value="1-3年" data-score="short:1"><div class="box"></div><span class="option-text">1 - 3 年 (短期閒置)</span></label>
+                    <label class="option-label"><input type="checkbox" value="3-5年" data-score="long:1"><div class="box"></div><span class="option-text">3 - 5 年 (穩健規劃)</span></label>
+                    <label class="option-label"><input type="checkbox" value="5年以上" data-score="long:2;driver:G"><div class="box"></div><span class="option-text">5 - 10 年以上 (長期不動)</span></label>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="question-card mod-3" id="card-Q3">
+                <div class="q-header"><span class="q-num">03</span><div class="q-title">風險直覺 (下跌)</div></div>
+                <div class="options" data-id="Q3">
+                    <label class="option-label"><input type="checkbox" value="-5%" data-score="feeling:2;driver:A"><div class="box"></div><span class="option-text">-5% 會很不安</span></label>
+                    <label class="option-label"><input type="checkbox" value="-10%" data-score="feeling:1"><div class="box"></div><span class="option-text">-10% 還能觀察</span></label>
+                    <label class="option-label"><input type="checkbox" value="-20%" data-score="logic:1;driver:O"><div class="box"></div><span class="option-text">-20% 可以接受</span></label>
+                    <label class="option-label"><input type="checkbox" value="-30%" data-score="logic:2;driver:O"><div class="box"></div><span class="option-text">-30% 也能冷靜</span></label>
+                </div>
+            </div>
+
+            <!-- Q4 (資金) -->
+            <div class="question-card mod-2" id="card-Q4">
+                <div class="q-header"><span class="q-num">04</span><div class="q-title">資金水位</div></div>
+                <div class="options" data-id="Q4">
+                    <label class="option-label"><input type="checkbox" value="50萬下" data-score="depend:1"><div class="box"></div><span class="option-text">50 萬以下</span></label>
+                    <label class="option-label"><input type="checkbox" value="50-200萬"><div class="box"></div><span class="option-text">50 - 200 萬</span></label>
+                    <label class="option-label"><input type="checkbox" value="200-500萬"><div class="box"></div><span class="option-text">200 - 500 萬</span></label>
+                    <label class="option-label"><input type="checkbox" value="500萬上" data-score="indep:2"><div class="box"></div><span class="option-text">500 萬以上</span></label>
+                </div>
+            </div>
+
+            <!-- Q5 (停泊) - 可複選 -->
+            <div class="question-card mod-2" id="card-Q5">
+                <div class="q-header"><span class="q-num">05</span><div class="q-title">資金停泊<span class="q-multi-hint">(可複選)</span></div></div>
+                <div class="options" data-id="Q5">
+                    <label class="option-label"><input type="checkbox" value="銀行" data-score="defend:2"><div class="box"></div><span class="option-text">銀行 (定存/活存)</span></label>
+                    <label class="option-label"><input type="checkbox" value="股市" data-score="growth:2"><div class="box"></div><span class="option-text">股市/ETF</span></label>
+                    <label class="option-label"><input type="checkbox" value="保單" data-score="defend:1"><div class="box"></div><span class="option-text">儲蓄險/保單</span></label>
+                    <label class="option-label"><input type="checkbox" value="other" id="q5-other-check"><div class="box"></div><span class="option-text">其他：<input type="text" id="q5-other-input" class="inline-input" placeholder="請說明"></span></label>
+                </div>
+            </div>
+
+            <!-- Q6 (配息) -->
+            <div class="question-card mod-3" id="card-Q6">
+                <div class="q-header"><span class="q-num">06</span><div class="q-title">配息偏好</div></div>
+                <div class="options" data-id="Q6">
+                    <label class="option-label"><input type="checkbox" value="喜歡" data-score="depend:2;driver:F"><div class="box"></div><span class="option-text">非常喜歡 (落袋為安)</span></label>
+                    <label class="option-label"><input type="checkbox" value="平衡"><div class="box"></div><span class="option-text">部分配置 (平衡風險)</span></label>
+                    <label class="option-label"><input type="checkbox" value="不需" data-score="indep:2"><div class="box"></div><span class="option-text">不需要 (追求複利)</span></label>
+                    <label class="option-label"><input type="checkbox" value="不懂"><div class="box"></div><span class="option-text">不太了解差異</span></label>
+                </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="question-card mod-3" id="card-Q7">
+                <div class="q-header"><span class="q-num">07</span><div class="q-title">家庭責任</div></div>
+                <div class="options" data-id="Q7">
+                    <label class="option-label"><input type="checkbox" value="單身" data-score="indep:1"><div class="box"></div><span class="option-text">單身，責任低</span></label>
+                    <label class="option-label"><input type="checkbox" value="家庭" data-score="depend:1"><div class="box"></div><span class="option-text">有家庭，負擔可控</span></label>
+                    <label class="option-label"><input type="checkbox" value="重擔" data-score="depend:2"><div class="box"></div><span class="option-text">有房貸/小孩/開銷大</span></label>
+                    <label class="option-label"><input type="checkbox" value="不穩"><div class="box"></div><span class="option-text">收入不穩，需保守</span></label>
+                </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="question-card mod-3" id="card-Q8">
+                <div class="q-header"><span class="q-num">08</span><div class="q-title">波動影響</div></div>
+                <div class="options" data-id="Q8">
+                    <label class="option-label"><input type="checkbox" value="很大" data-score="feeling:2"><div class="box"></div><span class="option-text">會，壓力很大</span></label>
+                    <label class="option-label"><input type="checkbox" value="有影響" data-score="feeling:1"><div class="box"></div><span class="option-text">有影響，還撐得住</span></label>
+                    <label class="option-label"><input type="checkbox" value="沒差" data-score="logic:1"><div class="box"></div><span class="option-text">幾乎沒影響</span></label>
+                    <label class="option-label"><input type="checkbox" value="閒錢" data-score="logic:2"><div class="box"></div><span class="option-text">完全無影響</span></label>
+                </div>
+            </div>
+
+            <!-- Q9 (可複選) -->
+            <div class="question-card mod-4" id="card-Q9">
+                <div class="q-header"><span class="q-num">09</span><div class="q-title">投資經驗<span class="q-multi-hint">(可複選)</span></div></div>
+                <div class="options" data-id="Q9">
+                    <label class="option-label"><input type="checkbox" value="無"><div class="box"></div><span class="option-text">幾乎沒有經驗</span></label>
+                    <label class="option-label"><input type="checkbox" value="定存"><div class="box"></div><span class="option-text">定存 / 儲蓄險</span></label>
+                    <label class="option-label"><input type="checkbox" value="長期"><div class="box"></div><span class="option-text">長期持有 基金/ETF</span></label>
+                    <label class="option-label"><input type="checkbox" value="波動"><div class="box"></div><span class="option-text">個股 / 期貨 / 波動</span></label>
+                </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="question-card mod-4" id="card-Q10">
+                <div class="q-header"><span class="q-num">10</span><div class="q-title">下跌行為</div></div>
+                <div class="options" data-id="Q10">
+                    <label class="option-label"><input type="checkbox" value="停損" data-score="feeling:2"><div class="box"></div><span class="option-text">停損或出清</span></label>
+                    <label class="option-label"><input type="checkbox" value="觀望" data-score="feeling:1"><div class="box"></div><span class="option-text">觀望，不太敢動</span></label>
+                    <label class="option-label"><input type="checkbox" value="加碼" data-score="logic:1"><div class="box"></div><span class="option-text">分批加碼 (攤平)</span></label>
+                    <label class="option-label"><input type="checkbox" value="照計畫" data-score="logic:2"><div class="box"></div><span class="option-text">幾乎不看，照計畫執行</span></label>
+                </div>
+            </div>
+
+            <!-- Q11 (可複選) -->
+            <div class="question-card mod-pain full-width" id="card-Q11">
+                <div class="q-header"><span class="q-num">11</span><div class="q-title">現階段最大擔憂<span class="q-multi-hint">(可複選)</span></div></div>
+                <div class="options" data-id="Q11">
+                    <label class="option-label"><input type="checkbox" value="通膨" data-score="growth:1"><div class="box"></div><span class="option-text">錢被通膨吃掉</span></label>
+                    <label class="option-label"><input type="checkbox" value="意外" data-score="defend:1;driver:A"><div class="box"></div><span class="option-text">發生意外/生病，存款歸零</span></label>
+                    <label class="option-label"><input type="checkbox" value="睡不著" data-score="defend:1;driver:A"><div class="box"></div><span class="option-text">投資大起大落，晚上睡不著</span></label>
+                    <label class="option-label"><input type="checkbox" value="退休" data-score="long:1;driver:G"><div class="box"></div><span class="option-text">退休金太慢，怕不夠用</span></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn" onclick="analyzeAndGen()">查看我的財務人格</button>
+        </div>
+    </form>
+</div>
+
+<!-- 即時分析結果頁 -->
+<div id="analysis-overlay">
+    <div class="analysis-card">
+        <div class="persona-header" id="persona-bg">
+            <div class="persona-img-container">
+                <!-- 這裡如果沒有圖片，會顯示 Emoji -->
+                <img id="persona-img" src="" class="persona-img" onerror="this.style.display='none'; document.getElementById('persona-icon').style.display='block';">
+                <div id="persona-icon" class="persona-emoji"></div>
+            </div>
+            <div class="persona-subtitle">您的財務 DNA</div>
+            <div class="persona-title" id="persona-title">分析中...</div>
+            <div class="persona-code" id="persona-code"></div>
+        </div>
+        
+        <div class="persona-body">
+            <!-- 4 維度圖 -->
+            <div class="dim-container">
+                <div class="trait-row"><span class="trait-label">防禦</span><div class="trait-bar-bg"><div class="trait-bar-fill bar-left color-safe" id="bar-defend"></div><div class="trait-bar-fill bar-right color-growth" id="bar-growth"></div></div><span class="trait-label">成長</span></div>
+                <div class="trait-row"><span class="trait-label">感性</span><div class="trait-bar-bg"><div class="trait-bar-fill bar-left color-safe" id="bar-feeling"></div><div class="trait-bar-fill bar-right color-growth" id="bar-logic"></div></div><span class="trait-label">理性</span></div>
+                <div class="trait-row"><span class="trait-label">短期</span><div class="trait-bar-bg"><div class="trait-bar-fill bar-left color-safe" id="bar-short"></div><div class="trait-bar-fill bar-right color-growth" id="bar-long"></div></div><span class="trait-label">長期</span></div>
+                <div class="trait-row"><span class="trait-label">依賴</span><div class="trait-bar-bg"><div class="trait-bar-fill bar-left color-safe" id="bar-depend"></div><div class="trait-bar-fill bar-right color-growth" id="bar-indep"></div></div><span class="trait-label">獨立</span></div>
+            </div>
+
+            <div class="analysis-text" id="analysis-text"></div>
+
+            <div class="cta-box">
+                <p class="cta-text">點我產生 <span class="cta-highlight">問卷截圖</span> 給顧問<br><span style="font-weight:400; font-size:14px; color:#666;">即可取得完整分析結果</span></p>
+                <button class="next-step-btn" onclick="genCapture()">📸 產生完整分析截圖</button>
+            </div>
+            
+            <div style="text-align:center; margin-top:15px;">
+                <button onclick="document.getElementById('analysis-overlay').style.display='none'" style="background:transparent; border:none; color:#999; text-decoration:underline;">返回修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 隱藏截圖區 (這就是生成圖片的模板) -->
+<div id="capture-area">
+    <div class="cap-header">
+        <h1 style="color:#006e7f; margin:0; font-size:32px;">財務健檢診斷表</h1>
+        <p style="color:#666; font-size:16px;">專屬投資處方籤</p>
+    </div>
+    
+    <div class="cap-info">
+        <div><strong>姓名：</strong><span id="cap-name"></span></div>
+        <div><strong>電話：</strong><span id="cap-phone"></span></div>
+        <div><strong>Line：</strong><span id="cap-line"></span></div>
+        <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
+            <span style="font-size:12px; color:#666;">財務人格代碼：</span>
+            <span id="cap-code" style="font-weight:700; color:#006e7f; font-size:18px;"></span>
+        </div>
+    </div>
+
+    <div id="cap-content">
+        <!-- 答案會塞在這裡 -->
+    </div>
+
+    <div style="margin-top:30px; text-align:center; padding-top:20px; border-top:1px solid #eee;">
+        <p style="color:#006e7f; font-weight:700;">▲ 請將此圖傳送給您的顧問進行分析 ▲</p>
+    </div>
+</div>
+
+<!-- 結果顯示 Modal -->
+<div id="result-overlay">
+    <div id="final-image-container">
+        <p style="color:white; font-weight:700; margin-bottom:10px; font-size:18px;">👇 長按圖片儲存，再傳給我 👇</p>
+        <img id="generated-image" src="" alt="結果圖">
+        <button class="close-btn" onclick="document.getElementById('result-overlay').style.display='none'">關閉</button>
+    </div>
+</div>
+
+<script>
+    // 點選邏輯
+    document.querySelectorAll('.option-label').forEach(l => {
+        l.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+            setTimeout(() => {
+                const chk = this.querySelector('input[type="checkbox"]');
+                if(chk.checked) this.classList.add('selected');
+                else this.classList.remove('selected');
+                // 取消紅框
+                const card = this.closest('.question-card');
+                if(card.style.borderColor === 'rgb(225, 29, 72)') { // Red color
+                    card.style.borderColor = '#e2e8f0';
+                    card.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)';
+                }
+            }, 10);
+        });
+    });
+
+    const otherInput = document.getElementById('q5-other-input');
+    const otherCheck = document.getElementById('q5-other-check');
+    otherInput.addEventListener('click', function(e) { e.stopPropagation(); });
+    otherInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            otherCheck.checked = true;
+            this.closest('.option-label').classList.add('selected');
+        }
+    });
+
+    // 16型人格資料庫 (16 Persona Database)
+    const PERSONA_DB = {
+        'GLVI': { title: '戰略總指揮', icon: '🦁', desc: '您擁有極佳的戰略眼光與理性，且習慣獨立決策。適合構建宏大的資產版圖。' },
+        'GLVR': { title: '穩健建築師', icon: '🏛️', desc: '您重視結構與長遠規劃，但傾向尋求專業意見來鞏固地基。' },
+        'GLNI': { title: '短線獵手', icon: '🐆', desc: '您理性且反應快，喜歡掌握短期機會，操作靈活。' },
+        'GLNR': { title: '趨勢跟隨者', icon: '🏄', desc: '您理性分析當下局勢，並善於跟隨市場趨勢獲利。' },
+        'GEVI': { title: '夢想航海家', icon: '⛵', desc: '您憑直覺看見遠方，並勇敢獨立啟航，追求心中的財富自由。' },
+        'GEVR': { title: '社群領袖', icon: '🌻', desc: '您重視長期價值與人際連結，投資決策常帶有溫暖的願景。' },
+        'GENI': { title: '直覺藝術家', icon: '🎨', desc: '您憑感覺捕捉當下的機會，投資風格獨特且隨性。' },
+        'GENR': { title: '快樂體驗者', icon: '🥳', desc: '您重視當下的快樂與體驗，理財是為了讓生活更豐富。' },
+        'PLVI': { title: '守望燈塔', icon: '🏯', desc: '您獨立且理性，注重長期的防禦與資產保全，不隨波逐流。' },
+        'PLVR': { title: '信託守護者', icon: '🛡️', desc: '您相信制度與專業，傾向將資產交由穩健的系統來長期守護。' },
+        'PLNI': { title: '精算會計師', icon: '🧮', desc: '您精打細算，重視每一分錢的當下效益，絕不浪費。' },
+        'PLNR': { title: '謹慎存錢筒', icon: '🐖', desc: '您相信現金為王，傾向保守儲蓄，尋求最簡單的安全感。' },
+        'PEVI': { title: '生態保育家', icon: '🌳', desc: '您用直覺守護長遠的資產，像種樹一樣耐心等待成蔭。' },
+        'PEVR': { title: '安心依賴者', icon: '🏡', desc: '您最重視家庭與安全感，需要一個值得信賴的依靠來規劃未來。' },
+        'PENI': { title: '直覺避險家', icon: '🦔', desc: '您對風險極度敏感，憑直覺避開危險，自我保護意識強。' },
+        'PENR': { title: '安穩隨行者', icon: '🍂', desc: '您隨遇而安，不強求富貴，只求生活平穩無憂。' }
+    };
+
+    function analyzeAndGen() {
+        // 必填防呆
+        const name = document.getElementById('name').value;
+        if(!name) { alert('請填寫姓名喔！'); document.getElementById('name').focus(); return; }
+
+        let isValid = true;
+        const qids = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11'];
+        for(let id of qids) {
+            const checked = document.querySelectorAll(`.options[data-id="${id}"] input:checked`);
+            if(checked.length === 0) {
+                const card = document.getElementById('card-' + id);
+                card.style.borderColor = '#e11d48';
+                card.style.boxShadow = '0 0 10px rgba(225, 29, 72, 0.2)';
+                card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                isValid = false;
+                break; 
+            }
+        }
+        if(!isValid) { alert('請回答每一題喔！'); return; }
+
+
+        let scores = { defend: 0, growth: 0, feeling: 0, logic: 0, short: 0, long: 0, depend: 0, indep: 0, driver: { A:0, G:0, F:0, O:0 } };
+
+        document.querySelectorAll('input:checked').forEach(input => {
+            const attr = input.getAttribute('data-score');
+            if(attr) {
+                const pairs = attr.split(';');
+                pairs.forEach(pair => {
+                    const [key, val] = pair.split(':');
+                    if(key === 'driver') scores.driver[val]++;
+                    else if(scores[key] !== undefined) scores[key] += parseInt(val);
+                });
+            }
+        });
+
+        function calcPct(a, b) {
+            if(a+b === 0) return 50;
+            return (a / (a+b)) * 100;
+        }
+
+        // Bar Animation
+        document.getElementById('bar-defend').style.width = calcPct(scores.defend, scores.growth) + '%';
+        document.getElementById('bar-growth').style.width = calcPct(scores.growth, scores.defend) + '%';
+        document.getElementById('bar-feeling').style.width = calcPct(scores.feeling, scores.logic) + '%';
+        document.getElementById('bar-logic').style.width = calcPct(scores.logic, scores.feeling) + '%';
+        document.getElementById('bar-short').style.width = calcPct(scores.short, scores.long) + '%';
+        document.getElementById('bar-long').style.width = calcPct(scores.long, scores.short) + '%';
+        document.getElementById('bar-depend').style.width = calcPct(scores.depend, scores.indep) + '%';
+        document.getElementById('bar-indep').style.width = calcPct(scores.indep, scores.depend) + '%';
+
+        // 4+1 Code
+        let codeKey = "";
+        codeKey += (scores.growth >= scores.defend) ? "G" : "P";
+        codeKey += (scores.logic >= scores.feeling) ? "L" : "E";
+        codeKey += (scores.long >= scores.short) ? "V" : "N";
+        codeKey += (scores.indep >= scores.depend) ? "I" : "R";
+
+        let displayCode = "[ " + codeKey;
+        let maxDriver = '';
+        let maxVal = -1;
+        for (const [key, val] of Object.entries(scores.driver)) {
+            if (val > maxVal) { maxVal = val; maxDriver = key; }
+        }
+        if (maxVal > 0) displayCode += "-" + maxDriver;
+        displayCode += " ]";
+
+        const personaData = PERSONA_DB[codeKey] || { title: '神秘探索者', icon: '❓', desc: '您的屬性獨特，請截圖諮詢顧問。' };
+
+        document.getElementById('persona-title').innerText = personaData.title;
+        document.getElementById('persona-code').innerText = displayCode;
+        document.getElementById('persona-icon').innerText = personaData.icon;
+        // 如果有圖檔: document.getElementById('persona-img').src = "p_" + codeKey.toLowerCase() + ".png"; 
+        document.getElementById('analysis-text').innerText = personaData.desc;
+        
+        const header = document.getElementById('persona-bg');
+        if (codeKey.startsWith('G')) {
+            header.style.background = 'linear-gradient(135deg, #f59e0b, #ea580c)';
+        } else {
+            header.style.background = 'linear-gradient(135deg, #006e7f, #0f766e)';
+        }
+
+        // 填入截圖用隱藏區
+        document.getElementById('cap-code').innerText = displayCode;
+        document.getElementById('cap-persona').innerText = personaData.title;
+        
+        document.getElementById('analysis-overlay').style.display = 'block';
+    }
+
+    // 生成截圖
+    function genCapture() {
+        const name = document.getElementById('name').value;
+        const lineId = document.getElementById('lineId').value;
+        const phone = document.getElementById('phone').value;
+        
+        document.getElementById('cap-name').innerText = name;
+        document.getElementById('cap-line').innerText = lineId;
+        document.getElementById('cap-phone').innerText = phone;
+
+        const qids = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11'];
+        let html = '';
+
+        qids.forEach((id, idx) => {
+            const opts = document.querySelectorAll(`.options[data-id="${id}"] input:checked`);
+            let vals = [];
+            opts.forEach(o => {
+                if (o.value === 'other') {
+                    const otherVal = document.getElementById('q5-other-input').value;
+                    vals.push('其他：' + (otherVal || '未填寫'));
+                } else {
+                    vals.push(o.parentNode.querySelector('.option-text').innerText);
+                }
+            });
+            
+            if(vals.length > 0) {
+                const titleEl = document.querySelector(`.options[data-id="${id}"]`).previousElementSibling.querySelector('.q-title');
+                // 移除標題中的 (可複選) 提示，讓截圖更乾淨
+                let title = titleEl.innerText.replace(/\(可複選\)/g, '').trim();
+                
+                html += `<div class="cap-item">
+                    <div class="cap-q">Q${idx+1} ${title}</div>
+                    <div class="cap-a">${vals.join('、')}</div>
+                </div>`;
+            }
+        });
+        
+        document.getElementById('cap-content').innerHTML = html;
+
+        const btn = document.querySelector('.next-step-btn');
+        const originalText = btn.innerText;
+        btn.innerText = '生成中...';
+        
+        html2canvas(document.querySelector("#capture-area"), {scale: 2}).then(canvas => {
+            const imgUrl = canvas.toDataURL("image/png");
+            document.getElementById('generated-image').src = imgUrl;
+            document.getElementById('result-overlay').style.display = 'block';
+            btn.innerText = originalText;
+        });
+    }
+</script>
+
+</body>
+</html>
+
+
